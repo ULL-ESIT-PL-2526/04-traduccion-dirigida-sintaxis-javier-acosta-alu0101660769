@@ -1,0 +1,181 @@
+/**
+ * Jest tests for the Jison parser
+ * 
+ * These tests define the EXPECTED behavior of the parser with correct
+ * mathematical operator precedence:
+ * - Exponentiation (**) has highest precedence and is right-associative  
+ * - Multiplication (*) and division (/) have higher precedence than addition/subtraction
+ * - Addition (+) and subtraction (-) have lowest precedence
+ * - Same precedence operators are left-associative (except exponentiation)
+ *
+ * IMPORTANT: These tests will FAIL with the current grammar implementation
+ * because it treats all operators with equal precedence (left-to-right evaluation).
+ * Students need to modify the grammar to implement proper operator precedence.
+ */
+const parse = require("../src/parser.js").parse;
+
+describe('Parser Tests', () => {
+  describe('Basic number parsing', () => {
+    test('should parse single numbers', () => {
+      expect(parse("42")).toBe(42);
+      expect(parse("0")).toBe(0);
+      expect(parse("123")).toBe(123);
+    });
+  });
+
+  describe('Basic arithmetic operations', () => {
+    test('should handle addition', () => {
+      expect(parse("3 + 5")).toBe(8);
+      expect(parse("10 + 20")).toBe(30);
+      expect(parse("0 + 1")).toBe(1);
+    });
+
+    test('should handle subtraction', () => {
+      expect(parse("10 - 3")).toBe(7);
+      expect(parse("1 - 2")).toBe(-1);
+      expect(parse("0 - 5")).toBe(-5);
+    });
+
+    test('should handle multiplication', () => {
+      expect(parse("3 * 4")).toBe(12);
+      expect(parse("7 * 8")).toBe(56);
+      expect(parse("0 * 10")).toBe(0);
+    });
+
+    test('should handle division', () => {
+      expect(parse("15 / 3")).toBe(5);
+      expect(parse("20 / 4")).toBe(5);
+      expect(parse("1 / 2")).toBe(0.5);
+    });
+
+    test('should handle exponentiation', () => {
+      expect(parse("2 ** 3")).toBe(8);
+      expect(parse("3 ** 2")).toBe(9);
+      expect(parse("5 ** 0")).toBe(1);
+      expect(parse("10 ** 1")).toBe(10);
+    });
+  });
+
+  describe('Operator precedence and associativity', () => {
+    test('should handle left associativity for same precedence operations', () => {
+      expect(parse("10 - 4 - 3")).toBe(3); // (10 - 4) - 3 = 3
+      expect(parse("7 - 5 - 1")).toBe(1);  // (7 - 5) - 1 = 1
+      expect(parse("20 / 4 / 2")).toBe(2.5); // (20 / 4) / 2 = 2.5
+      expect(parse("8 / 2 / 2")).toBe(2);   // (8 / 2) / 2 = 2
+    });
+  });
+
+  describe('Complex expressions', () => {
+    test('should handle multiple operations of same precedence', () => {
+      expect(parse("1 + 2 + 3 + 4")).toBe(10);    // ((1 + 2) + 3) + 4 = 10
+      expect(parse("2 * 3 * 4")).toBe(24);        // (2 * 3) * 4 = 24
+      expect(parse("100 - 20 - 10 - 5")).toBe(65); // ((100 - 20) - 10) - 5 = 65
+    });
+  });
+
+  describe('Edge cases', () => {
+    test('should handle expressions with extra whitespace', () => {
+      expect(parse("  3   +   5  ")).toBe(8);
+      expect(parse("\t2\t*\t4\t")).toBe(8);
+      expect(parse("1+2")).toBe(3);  // no spaces
+    });
+
+    test('should handle zero in operations', () => {
+      expect(parse("0 + 0")).toBe(0);
+      expect(parse("0 - 0")).toBe(0);
+      expect(parse("0 * 100")).toBe(0);
+      expect(parse("5 + 0")).toBe(5);
+      expect(parse("10 - 0")).toBe(10);
+    });
+
+    test('should handle division by zero', () => {
+      expect(parse("5 / 0")).toBe(Infinity);
+      expect(parse("0 / 0")).toBe(NaN);
+    });
+
+    test('should handle negative results', () => {
+      expect(parse("3 - 5")).toBe(-2);
+      expect(parse("0 - 10")).toBe(-10);
+      expect(parse("2 * 3 - 10")).toBe(-4);  // (2 * 3) - 10 = -4
+    });
+
+    test('should handle decimal results', () => {
+      expect(parse("5 / 2")).toBe(2.5);
+      expect(parse("7 / 4")).toBe(1.75);
+      expect(parse("1 / 3")).toBeCloseTo(0.3333333333333333);
+    });
+
+    test('should handle large numbers', () => {
+      expect(parse("999 + 1")).toBe(1000);
+      expect(parse("1000000 / 1000")).toBe(1000);
+      expect(parse("99 ** 2")).toBe(9801);
+    });
+  });
+
+  describe('Input validation and error cases', () => {
+    test('should handle invalid input gracefully', () => {
+      // These should throw errors or be handled by the parser
+      expect(() => parse("")).toThrow();
+      expect(() => parse("abc")).toThrow();
+      expect(() => parse("3 +")).toThrow();
+      expect(() => parse("+ 3")).toThrow();
+      expect(() => parse("3 + + 4")).toThrow();
+      expect(() => parse("3.5")).toThrow(); // Only integers are supported
+    });
+
+    test('should handle incomplete expressions', () => {
+      expect(() => parse("3 +")).toThrow();
+      expect(() => parse("* 5")).toThrow();
+      expect(() => parse("3 4")).toThrow(); // Missing operator
+    });
+  });
+
+  describe('Regression tests', () => {
+    test('should match examples from index.js', () => {
+      expect(parse("1 - 2")).toBe(-1);
+      expect(parse("10 - 4 - 3")).toBe(3);
+      expect(parse("7 - 5 - 1")).toBe(1);
+    });
+  });
+
+  describe('FAILING TESTS - Correct Mathematical Operator Precedence (TO BE IMPLEMENTED)', () => {
+    test('should handle multiplication and division before addition and subtraction', () => {
+      expect(parse("2 + 3 * 4")).toBe(14);     // 2 + (3 * 4) = 14
+      expect(parse("10 - 6 / 2")).toBe(7);     // 10 - (6 / 2) = 7
+      expect(parse("5 * 2 + 3")).toBe(13);     // (5 * 2) + 3 = 13
+      expect(parse("20 / 4 - 2")).toBe(3);     // (20 / 4) - 2 = 3
+    });
+
+    test('should handle exponentiation with highest precedence', () => {
+      expect(parse("2 + 3 ** 2")).toBe(11);    // 2 + (3 ** 2) = 11
+      expect(parse("2 * 3 ** 2")).toBe(18);    // 2 * (3 ** 2) = 18
+      expect(parse("10 - 2 ** 3")).toBe(2);    // 10 - (2 ** 3) = 2
+    });
+
+    test('should handle right associativity for exponentiation', () => {
+      expect(parse("2 ** 3 ** 2")).toBe(512);  // 2 ** (3 ** 2) = 2 ** 9 = 512
+      expect(parse("3 ** 2 ** 2")).toBe(81);   // 3 ** (2 ** 2) = 3 ** 4 = 81
+    });
+
+    test('should handle mixed operations with correct precedence', () => {
+      expect(parse("1 + 2 * 3 - 4")).toBe(3);     // 1 + (2 * 3) - 4 = 3
+      expect(parse("15 / 3 + 2 * 4")).toBe(13);   // (15 / 3) + (2 * 4) = 13
+      expect(parse("10 - 3 * 2 + 1")).toBe(5);    // 10 - (3 * 2) + 1 = 5
+    });
+
+    test('should handle expressions with exponentiation precedence', () => {
+      expect(parse("2 ** 3 + 1")).toBe(9);        // (2 ** 3) + 1 = 9
+      expect(parse("3 + 2 ** 4")).toBe(19);       // 3 + (2 ** 4) = 19
+      expect(parse("2 * 3 ** 2 + 1")).toBe(19);   // 2 * (3 ** 2) + 1 = 19
+    });
+
+    test('should handle various realistic calculations with correct precedence', () => {
+      expect(parse("1 + 2 * 3")).toBe(7);        // 1 + (2 * 3) = 7
+      expect(parse("6 / 2 + 4")).toBe(7);        // (6 / 2) + 4 = 7
+      expect(parse("2 ** 2 + 1")).toBe(5);       // (2 ** 2) + 1 = 5
+      expect(parse("10 / 2 / 5")).toBe(1);       // (10 / 2) / 5 = 1
+      expect(parse("100 - 50 + 25")).toBe(75);   // (100 - 50) + 25 = 75
+      expect(parse("2 * 3 + 4 * 5")).toBe(26);   // (2 * 3) + (4 * 5) = 26
+    });
+  });
+});

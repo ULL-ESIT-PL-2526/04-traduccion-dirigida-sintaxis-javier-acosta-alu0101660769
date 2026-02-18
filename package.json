@@ -1,0 +1,50 @@
+{
+  "name": "04-traduccion",
+  "version": "1.0.0",
+  "description": "Traducción dirigita por la sintaxis",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "jison src/grammar.jison -o src/parser.js",
+    "start": "npm run build && node src/index.js",
+    "test": "jest"
+  },
+  "engines": {
+    "node": ">= 24",
+    "npm": ">= 11"
+  },
+  "bin": {
+    "calc": "./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ULL-ESIT-PL-2526/04-tds-template.git"
+  },
+  "keywords": ["jison", "parser", "syntax directed translation"],
+  "author": "Casiano Rodriguez-Leon",
+  "contributors": ["Coromoto Leon"],
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://https://github.com/ULL-ESIT-PL-2526/04-tds-template.git/issues"
+  },
+  "homepage": "https://github.com/ULL-ESIT-PL-2526/04-tds-template.git#readme",
+  "dependencies": {
+    "jison": "^0.4.18"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/__tests__/**/*.test.js", "**/?(*.)+(spec|test).js"],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/index.js",
+      "!src/**/*.jison",
+      "!src/**/parser.js"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}
