@@ -29,26 +29,3 @@ Type ".help" for more information.
 > p.parse("2*3")
 6
 ```
-
-## Why is failing our calculator?
-
-```js
-> p.parse('4-2*3')
-6
-> 4-2*3
--2
-> p.parse('2**3**2')
-64
-> 2**3**2
-512
-> p.parse('7-4/2')
-1.5
-> 7-4/2
-5
-```
-
-1. What parse tree is being built for each of the above expressions?
-2. In what order are the operations being evaluated?
-3. Modify the Jison program so that mathematical operator precedences are respected.
-4. In the [__tests__](__tests__/parser.test.js) folder there is a set of tests that can be run with the `npm test` command to verify that the parser behaves correctly. Fix the ones that fail and add additional tests to verify that all precedences and associativities of mathematical operators are respected.
-5. Modify the grammar to support parentheses and add the corresponding tests. 
