@@ -1,31 +1,34 @@
 # Syntax Directed Translation with Jison
 
-Jison is a tool that receives as input a Syntax Directed Translation and produces as output a JavaScript parser  that executes
-the semantic actions in a bottom up ortraversing of the parse tree.
- 
+Esta práctica tiene como objetico familiarizaronos con la traducción dirigida por la sintaxis, así como con flex y jest.
 
-## Compile the grammar to a parser
+Los objetivos son los siguientes:
 
-See file [grammar.jison](./src/grammar.jison) for the grammar specification. To compile it to a parser, run the following command in the terminal:
-``` 
-➜  jison git:(main) ✗ npx jison grammar.jison -o parser.js
-```
+1. Configurar las dependencias y generar el parser.
+2. Profundizar sobre la especificación del analizador en JISON, respondiendo una serie de preguntas.
+3. Modificar el analizador léxico para tratar los comentarios.
+4. Modificar el analizador léxico para números en punto flotante.
+5. Añadir pruebas para el analizador.
 
-## Use the parser
+## Preguntas
 
-After compiling the grammar to a parser, you can use it in your JavaScript code. For example, you can run the following code in a Node.js environment:
+### Describa la diferencia entre /* skip whitespace */ y devolver un token
 
-```
-➜  jison git:(main) ✗ node                                
-Welcome to Node.js v25.6.0.
-Type ".help" for more information.
-> p = require("./parser.js")
-{
-  parser: { yy: {} },
-  Parser: [Function: Parser],
-  parse: [Function (anonymous)],
-  main: [Function: commonjsMain]
-}
-> p.parse("2*3")
-6
-```
+La diferencia es que el ```/* skip whitespaces */``` no devuelve nada, solo ignora espacios, tabs, saltos de línea. Es invisible para el parser, solo sirve para ignorar símbolos, en este caso, 'whitespaces'.
+
+### Escriba la secuencia exacta de tokens producidos para la entrada 123**45+@.
+
+La secuencia producida es: NUMBER, OP, NUMBER, OP, INVALID
+
+### Indique por qué ** debe aparecer antes.
+
+Porque el lexer evalúa las reglas en orden: si pusieras ```[-+*/]``` primero, el ```**``` se rompería en dos ```*``` individuales, no en un operador de potencia.
+El orden importa, primero se deben poner los patrones más específicos y luego los generales.
+
+### Explique cuándo se devuelve EOF.
+
+```<<EOF>>``` se devuelve cuando el lexer llega al final de la entrada. Es un token especial que indica el final del fichero/entrada.
+
+### Explique por qué existe la regla . que devuelve INVALID.
+
+Esta es una regla que abarca cualquier caracter que no coincida con las reglas anteriores, lo cuál significaría que ese carácter no es válido.
