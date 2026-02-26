@@ -110,7 +110,6 @@ describe('Parser Tests', () => {
       expect(() => parse("3 +")).toThrow();
       expect(() => parse("+ 3")).toThrow();
       expect(() => parse("3 + + 4")).toThrow();
-      expect(() => parse("3.5")).toThrow(); // Only integers are supported
     });
 
     test('should handle incomplete expressions', () => {
@@ -127,5 +126,33 @@ describe('Parser Tests', () => {
       expect(parse("7 - 5 - 1")).toBe(1);
     });
   });
+
+  describe('Comments handling', () => {
+  test('should ignore single-line comments', () => {
+    expect(parse("3 + 5 // this is a comment")).toBe(8);
+    expect(parse("10 - 2 // subtract")).toBe(8);
+    expect(parse("// entire line comment\n7 * 2")).toBe(14);
+    expect(parse("1 + 2 // comment\n + 3")).toBe(6);
+  });
+});
+
+describe('Floating point and scientific numbers', () => {
+  test('should parse decimal numbers', () => {
+    expect(parse("2.35 + 0.65")).toBeCloseTo(3.0);
+    expect(parse("0.1 + 0.2")).toBeCloseTo(0.3);
+  });
+
+  test('should parse numbers in scientific notation', () => {
+    expect(parse("2.35e3 + 1")).toBeCloseTo(2351);
+    expect(parse("1.2E2 + 3")).toBeCloseTo(123);
+    expect(parse("5e-1 + 0.25")).toBeCloseTo(0.75);
+    expect(parse("3.5e+2 - 50")).toBeCloseTo(300);
+  });
+
+  test('should mix integers, decimals, and scientific numbers', () => {
+    expect(parse("10 + 2.5 + 1e1")).toBeCloseTo(22.5);
+    expect(parse("1 + 2.0e2 + 3.5")).toBeCloseTo(204.5);
+  });
+});
 
 });
