@@ -32,3 +32,23 @@ El orden importa, primero se deben poner los patrones más específicos y luego 
 ### Explique por qué existe la regla . que devuelve INVALID.
 
 Esta es una regla que abarca cualquier caracter que no coincida con las reglas anteriores, lo cuál significaría que ese carácter no es válido.
+
+## Modificaciones grammar.jison
+
+Las definiciones regulares finales son las siguientes:
+```
+\/\/[^\n]*             { /* skip single-line comments */; }
+\s+                   { /* skip whitespace */; }
+[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?   { return 'NUMBER'; }  // enteros, decimales y científicos
+"**"                  { return 'OP';           }
+[-+*/]                { return 'OP';           }
+<<EOF>>               { return 'EOF';          }
+.                     { return 'INVALID';      }
+```
+
+## Modificaciones tests
+
+Se han añadido los siguientes test:
+```
+
+```
