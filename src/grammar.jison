@@ -7,6 +7,7 @@
 [-+*/]                { return 'OP';           }
 <<EOF>>               { return 'EOF';          }
 .                     { return 'INVALID';      }
+\/\/[^\n]*             { /* skip single-line comments */; }
 /lex
 
 /* Parser */
