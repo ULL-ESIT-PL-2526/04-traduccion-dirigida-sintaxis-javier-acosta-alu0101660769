@@ -78,3 +78,216 @@ describe('Floating point and scientific numbers', () => {
   });
 });
 ```
+
+## Preguntas parte 2
+
+Para las siguientes frases: 4.0-2.0*3.0, 2\*\*3\*\*2 y 7-4/2:
+
+### Escriba la derivación para cada una de las frases.
+
+Frase: 4.0-2.0*3.0
+
+L
+⇒ E eof
+⇒ E op T eof
+⇒ E op T op T eof
+⇒ T op T op T eof
+⇒ number op T op T eof
+⇒ 4.0 op T op T eof
+⇒ 4.0 - T op T eof
+⇒ 4.0 - number op T eof
+⇒ 4.0 - 2.0 op T eof
+⇒ 4.0 - 2.0 * T eof
+⇒ 4.0 - 2.0 * number eof
+⇒ 4.0 - 2.0 * 3.0 eof
+
+Frase: 2\*\*3\*\*2
+
+L
+⇒ E eof
+⇒ E op T eof
+⇒ E op T op T eof
+⇒ T op T op T eof
+⇒ number op T op T eof
+⇒ 2 op T op T eof
+⇒ 2 ** T op T eof
+⇒ 2 ** number op T eof
+⇒ 2 ** 3 op T eof
+⇒ 2 ** 3 ** T eof
+⇒ 2 ** 3 ** number eof
+⇒ 2 ** 3 ** 2 eof
+
+Frase: 7-4/2
+
+L
+⇒ E eof
+⇒ E op T eof
+⇒ E op T op T eof
+⇒ T op T op T eof
+⇒ number op T op T eof
+⇒ 7 op T op T eof
+⇒ 7 - T op T eof
+⇒ 7 - number op T eof
+⇒ 7 - 4 op T eof
+⇒ 7 - 4 / T eof
+⇒ 7 - 4 / number eof
+⇒ 7 - 4 / 2 eof
+
+### Escriba el árbol de análisis sintáctico (parse tree) para cada una de las frases.
+
+Frase: 4.0-2.0*3.0
+
+            E
+         /  |   \
+        E   op    T
+      / | \        |
+     E  op  T      number(3.0)
+     |      |
+     T      number(2.0)
+     |
+ number(4.0)
+
+Se interpreta como (4.0 - 2.0) * 3.0, no comor 4.0 - (2.0 * 3.0)
+
+Frase: 232
+
+            E
+         /  |   \
+        E   op    T
+      / | \        |
+     E  op  T      number(2)
+     |      |
+     T      number(3)
+     |
+ number(2)
+
+Se interpreta como (2 ** 3) ** 2, no como 2 ** (3 ** 2)
+
+Frase: 7-4/2
+
+            E
+         /  |   \
+        E   op    T
+      / | \        |
+     E  op  T      number(2)
+     |      |
+     T      number(4)
+     |
+ number(7)
+
+Se interpreta como (7 - 4) / 2, no como 7 - (4 / 2)
+
+### ¿En qué orden se evaluan las acciones semánticas para cada una de las frases?
+
+Frase: 4.0-2.0*3.0
+
+Debido a la recursión izquierda, las acciones se evalúan de abajo hacia arriba:
+
+convert("4.0")
+convert("2.0")
+operate('-', 4.0, 2.0) → 2.0
+convert("3.0")
+operate('*', 2.0, 3.0) → 6.0
+Resultado final: 6.0
+
+Incorrecto, según las matemáticas debería dar -2.0
+
+Frase: 232
+
+Debido a la recursión izquierda, las acciones se evalúan de abajo hacia arriba:
+
+convert("2")
+convert("3")
+operate('', 2, 3) → 8
+convert("2")
+operate('', 8, 2) → 64
+
+Resultado final: 64
+
+Incorrecto, según las matemáticas debería dar 512
+
+Frase: 7-4/2
+
+Debido a la recursión izquierda, las acciones se evalúan de abajo hacia arriba:
+
+convert("7")
+convert("4")
+operate('-', 7, 4) → 3
+convert("2")
+operate('/', 3, 2) → 1.5
+
+Resultado final: 1.5
+
+Incorrecto, según las matemáticas debería dar 5
+
+## Modificación gramática
+
+Para respetar la precedencia y la asociatividad de los operadores matemáticos ha sido necesario reestructurar la gramática original. En la versión inicial, todas las operaciones se definían en una única producción E → E op T, lo que provocaba que todos los operadores tuviesen la misma precedencia y que además fueran asociativos por la izquierda debido a la recursión izquierda. Como consecuencia, expresiones como 4.0-2.0*3.0 o 2\*\*3\*\*2 no se evaluaban siguiendo las reglas matemáticas habituales.
+
+La modificación principal ha consistido en introducir niveles jerárquicos en la gramática, separando los operadores según su precedencia. Para ello se han añadido los no terminales E, T, R y F, cada uno representando un nivel distinto de prioridad. El no terminal E gestiona los operadores aditivos (+ y -), T los operadores multiplicativos (* y /), R el operador de potencia (**), y F los operandos numéricos. Esta estructuración garantiza que primero se reduzcan las potencias, después las multiplicaciones y divisiones, y finalmente las sumas y restas.
+
+Además, se han dividido los tokens en tres tipos diferentes: OPAD para los operadores aditivos, OPMU para los multiplicativos y OPOW para la potencia. Esta separación permite que cada producción aplique la operación correspondiente únicamente en su nivel de precedencia, evitando ambigüedades.
+
+Otro cambio importante ha sido la forma de definir la potencia. Mientras que la suma, resta, multiplicación y división se han mantenido como recursivas por la izquierda (lo que garantiza asociatividad por la izquierda), la potencia se ha definido mediante recursión por la derecha (R → F OPOW R). Esto asegura que el operador de potencia sea asociativo por la derecha, como establecen las matemáticas, de modo que una expresión como 2\*\*3\*\*2 se interprete correctamente como 2**(3**2).
+
+## Tests para la modificación
+
+Los tests añadidos son los siguientes:
+
+```javascript
+describe("Precedencia y asociatividad con flotantes", () => {
+  test("Precedencia multiplicativa sobre aditiva", () => {
+    expect(parser.parse("4.0-2.0*3.0")).toBeCloseTo(-2.0); // 4.0 - (2.0 * 3.0) = -2.0
+  });
+
+  test("Precedencia multiplicativa sobre aditiva (división)", () => {
+    expect(parser.parse("7.0-4.0/2.0")).toBeCloseTo(5.0); // 7.0 - (4.0 / 2.0) = 5.0
+  });
+
+  test("Asociatividad izquierda en suma", () => {
+    expect(parser.parse("5.0-2.0-1.0")).toBeCloseTo(2.0); // (5.0 - 2.0) - 1.0 = 2.0
+  });
+
+  test("Asociatividad izquierda en multiplicación", () => {
+    expect(parser.parse("8.0/2.0/2.0")).toBeCloseTo(2.0); // (8.0 / 2.0) / 2.0 = 2.0
+  });
+
+  test("Precedencia de potencia sobre multiplicación", () => {
+    expect(parser.parse("2.0*3.0**2.0")).toBeCloseTo(18.0); // 2.0 * (3.0 ** 2.0) = 18.0
+  });
+
+  test("Asociatividad derecha en potencia", () => {
+    expect(parser.parse("2.0**3.0**2.0")).toBeCloseTo(512.0); // 2.0 ** (3.0 ** 2.0) = 512.0
+  });
+});
+```
+
+ ## Ampliación paréntesis
+
+Se añade la producción ```F → ( E )   { $$ = $E; }``` y los nuevos tokens ( y ) en el lexer.
+
+Los tests añadidos para probar esta ampliación son los siguientes:
+
+```javascript
+describe("Expresiones con paréntesis", () => {
+  test("Paréntesis alteran precedencia básica", () => {
+    expect(parser.parse("(4.0-2.0)*3.0")).toBeCloseTo(6.0);
+  });
+
+  test("Paréntesis en división", () => {
+    expect(parser.parse("(7.0-4.0)/2.0")).toBeCloseTo(1.5);
+  });
+
+  test("Paréntesis en potencia", () => {
+    expect(parser.parse("(2.0**3.0)**2.0")).toBeCloseTo(64.0);
+  });
+
+  test("Paréntesis cambian asociatividad de potencia", () => {
+    expect(parser.parse("2.0**(3.0**2.0)")).toBeCloseTo(512.0);
+  });
+
+  test("Paréntesis anidados", () => {
+    expect(parser.parse("((1.0+2.0)*(3.0+4.0))")).toBeCloseTo(21.0);
+  });
+});
+```
