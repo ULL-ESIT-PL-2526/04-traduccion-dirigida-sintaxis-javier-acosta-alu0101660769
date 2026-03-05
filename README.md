@@ -219,3 +219,14 @@ operate('/', 3, 2) → 1.5
 Resultado final: 1.5
 
 Incorrecto, según las matemáticas debería dar 5
+
+## Modificación gramática
+
+Para respetar la precedencia y la asociatividad de los operadores matemáticos ha sido necesario reestructurar la gramática original. En la versión inicial, todas las operaciones se definían en una única producción E → E op T, lo que provocaba que todos los operadores tuviesen la misma precedencia y que además fueran asociativos por la izquierda debido a la recursión izquierda. Como consecuencia, expresiones como 4.0-2.0*3.0 o 2\*\*3\*\*2 no se evaluaban siguiendo las reglas matemáticas habituales.
+
+La modificación principal ha consistido en introducir niveles jerárquicos en la gramática, separando los operadores según su precedencia. Para ello se han añadido los no terminales E, T, R y F, cada uno representando un nivel distinto de prioridad. El no terminal E gestiona los operadores aditivos (+ y -), T los operadores multiplicativos (* y /), R el operador de potencia (**), y F los operandos numéricos. Esta estructuración garantiza que primero se reduzcan las potencias, después las multiplicaciones y divisiones, y finalmente las sumas y restas.
+
+Además, se han dividido los tokens en tres tipos diferentes: OPAD para los operadores aditivos, OPMU para los multiplicativos y OPOW para la potencia. Esta separación permite que cada producción aplique la operación correspondiente únicamente en su nivel de precedencia, evitando ambigüedades.
+
+Otro cambio importante ha sido la forma de definir la potencia. Mientras que la suma, resta, multiplicación y división se han mantenido como recursivas por la izquierda (lo que garantiza asociatividad por la izquierda), la potencia se ha definido mediante recursión por la derecha (R → F OPOW R). Esto asegura que el operador de potencia sea asociativo por la derecha, como establecen las matemáticas, de modo que una expresión como 2\*\*3\*\*2 se interprete correctamente como 2**(3**2).
+
