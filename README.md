@@ -261,3 +261,33 @@ describe("Precedencia y asociatividad con flotantes", () => {
   });
 });
 ```
+
+ ## Ampliación paréntesis
+
+Se añade la producción ```F → ( E )   { $$ = $E; }``` y los nuevos tokens ( y ) en el lexer.
+
+Los tests añadidos para probar esta ampliación son los siguientes:
+
+```javascript
+describe("Expresiones con paréntesis", () => {
+  test("Paréntesis alteran precedencia básica", () => {
+    expect(parser.parse("(4.0-2.0)*3.0")).toBeCloseTo(6.0);
+  });
+
+  test("Paréntesis en división", () => {
+    expect(parser.parse("(7.0-4.0)/2.0")).toBeCloseTo(1.5);
+  });
+
+  test("Paréntesis en potencia", () => {
+    expect(parser.parse("(2.0**3.0)**2.0")).toBeCloseTo(64.0);
+  });
+
+  test("Paréntesis cambian asociatividad de potencia", () => {
+    expect(parser.parse("2.0**(3.0**2.0)")).toBeCloseTo(512.0);
+  });
+
+  test("Paréntesis anidados", () => {
+    expect(parser.parse("((1.0+2.0)*(3.0+4.0))")).toBeCloseTo(21.0);
+  });
+});
+```
