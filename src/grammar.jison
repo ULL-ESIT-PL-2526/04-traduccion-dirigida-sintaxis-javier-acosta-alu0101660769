@@ -1,36 +1,58 @@
 /* Lexer */
 %lex
 %%
-\/\/[^\n]*             { /* skip single-line comments */; }
-\s+                   { /* skip whitespace */; }
-[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?   { return 'NUMBER'; }  // enteros, decimales y científicos
-"**"                  { return 'OP';           }
-[-+*/]                { return 'OP';           }
-<<EOF>>               { return 'EOF';          }
-.                     { return 'INVALID';      }
+\/\/[^\n]*             { /* skip single-line comments */ }
+\s+                    { /* skip whitespace */ }
+[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?   { return 'NUMBER'; }
+"**"                   { return 'OPOW'; }
+[*/]                   { return 'OPMU'; }
+[+-]                   { return 'OPAD'; }
 
+"("                    { return '('; }
+")"                    { return ')'; }
+
+<<EOF>>                { return 'EOF'; }
+.                      { return 'INVALID'; }
 /lex
 
 /* Parser */
-%start expressions
-%token NUMBER
+%start L
+
+%token NUMBER OPAD OPMU OPOW EOF
+
 %%
 
-expressions
-    : expression EOF
-        { return $expression; }
+L
+    : E EOF
+        { return $E; }
     ;
 
-expression
-    : expression OP term
-        { $$ = operate($OP, $expression, $term); }
-    | term
-        { $$ = $term; }
+E
+    : E OPAD T
+        { $$ = operate($OPAD, $E, $T); }
+    | T
+        { $$ = $T; }
     ;
 
-term
+T
+    : T OPMU R
+        { $$ = operate($OPMU, $T, $R); }
+    | R
+        { $$ = $R; }
+    ;
+
+R
+    : F OPOW R
+        { $$ = operate($OPOW, $F, $R); }
+    | F
+        { $$ = $F; }
+    ;
+
+F
     : NUMBER
         { $$ = Number(yytext); }
+    | '(' E ')'
+        { $$ = $E; }
     ;
 %%
 
