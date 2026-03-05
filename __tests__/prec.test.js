@@ -43,26 +43,48 @@ describe('Parser Failing Tests', () => {
 
 describe("Precedencia y asociatividad con flotantes", () => {
   test("Precedencia multiplicativa sobre aditiva", () => {
-    expect(parser.parse("4.0-2.0*3.0")).toBeCloseTo(-2.0); // 4.0 - (2.0 * 3.0) = -2.0
+    expect(parse("4.0-2.0*3.0")).toBeCloseTo(-2.0); // 4.0 - (2.0 * 3.0) = -2.0
   });
 
   test("Precedencia multiplicativa sobre aditiva (división)", () => {
-    expect(parser.parse("7.0-4.0/2.0")).toBeCloseTo(5.0); // 7.0 - (4.0 / 2.0) = 5.0
+    expect(parse("7.0-4.0/2.0")).toBeCloseTo(5.0); // 7.0 - (4.0 / 2.0) = 5.0
   });
 
   test("Asociatividad izquierda en suma", () => {
-    expect(parser.parse("5.0-2.0-1.0")).toBeCloseTo(2.0); // (5.0 - 2.0) - 1.0 = 2.0
+    expect(parse("5.0-2.0-1.0")).toBeCloseTo(2.0); // (5.0 - 2.0) - 1.0 = 2.0
   });
 
   test("Asociatividad izquierda en multiplicación", () => {
-    expect(parser.parse("8.0/2.0/2.0")).toBeCloseTo(2.0); // (8.0 / 2.0) / 2.0 = 2.0
+    expect(parse("8.0/2.0/2.0")).toBeCloseTo(2.0); // (8.0 / 2.0) / 2.0 = 2.0
   });
 
   test("Precedencia de potencia sobre multiplicación", () => {
-    expect(parser.parse("2.0*3.0**2.0")).toBeCloseTo(18.0); // 2.0 * (3.0 ** 2.0) = 18.0
+    expect(parse("2.0*3.0**2.0")).toBeCloseTo(18.0); // 2.0 * (3.0 ** 2.0) = 18.0
   });
 
   test("Asociatividad derecha en potencia", () => {
-    expect(parser.parse("2.0**3.0**2.0")).toBeCloseTo(512.0); // 2.0 ** (3.0 ** 2.0) = 512.0
+    expect(parse("2.0**3.0**2.0")).toBeCloseTo(512.0); // 2.0 ** (3.0 ** 2.0) = 512.0
+  });
+});
+
+describe("Expresiones con paréntesis", () => {
+  test("Paréntesis alteran precedencia básica", () => {
+    expect(parse("(4.0-2.0)*3.0")).toBeCloseTo(6.0); // (4.0 - 2.0) * 3.0 = 6.0
+  });
+
+  test("Paréntesis en división", () => {
+    expect(parse("(7.0-4.0)/2.0")).toBeCloseTo(1.5); // (7.0 - 4.0) / 2.0 = 1.5
+  });
+
+  test("Paréntesis en potencia", () => {
+    expect(parse("(2.0**3.0)**2.0")).toBeCloseTo(64.0); // (2.0 ** 3.0) ** 2.0 = 64.0
+  });
+
+  test("Paréntesis cambian asociatividad de potencia", () => {
+    expect(parse("2.0**(3.0**2.0)")).toBeCloseTo(512.0); // 2.0 ** (3.0 ** 2.0) = 512.0
+  });
+
+  test("Paréntesis anidados", () => {
+    expect(parse("((1.0+2.0)*(3.0+4.0))")).toBeCloseTo(21.0); // ((1.0 + 2.0) * (3.0 + 4.0)) = 21.0
   });
 });

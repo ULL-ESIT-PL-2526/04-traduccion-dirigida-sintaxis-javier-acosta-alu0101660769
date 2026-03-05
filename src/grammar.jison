@@ -7,6 +7,10 @@
 "**"                   { return 'OPOW'; }
 [*/]                   { return 'OPMU'; }
 [+-]                   { return 'OPAD'; }
+
+"("                    { return '('; }
+")"                    { return ')'; }
+
 <<EOF>>                { return 'EOF'; }
 .                      { return 'INVALID'; }
 /lex
@@ -47,6 +51,8 @@ R
 F
     : NUMBER
         { $$ = Number(yytext); }
+    | '(' E ')'
+        { $$ = $E; }
     ;
 %%
 
