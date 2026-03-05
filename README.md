@@ -230,3 +230,34 @@ Además, se han dividido los tokens en tres tipos diferentes: OPAD para los oper
 
 Otro cambio importante ha sido la forma de definir la potencia. Mientras que la suma, resta, multiplicación y división se han mantenido como recursivas por la izquierda (lo que garantiza asociatividad por la izquierda), la potencia se ha definido mediante recursión por la derecha (R → F OPOW R). Esto asegura que el operador de potencia sea asociativo por la derecha, como establecen las matemáticas, de modo que una expresión como 2\*\*3\*\*2 se interprete correctamente como 2**(3**2).
 
+## Tests para la modificación
+
+Los tests añadidos son los siguientes:
+
+```javascript
+describe("Precedencia y asociatividad con flotantes", () => {
+  test("Precedencia multiplicativa sobre aditiva", () => {
+    expect(parser.parse("4.0-2.0*3.0")).toBeCloseTo(-2.0); // 4.0 - (2.0 * 3.0) = -2.0
+  });
+
+  test("Precedencia multiplicativa sobre aditiva (división)", () => {
+    expect(parser.parse("7.0-4.0/2.0")).toBeCloseTo(5.0); // 7.0 - (4.0 / 2.0) = 5.0
+  });
+
+  test("Asociatividad izquierda en suma", () => {
+    expect(parser.parse("5.0-2.0-1.0")).toBeCloseTo(2.0); // (5.0 - 2.0) - 1.0 = 2.0
+  });
+
+  test("Asociatividad izquierda en multiplicación", () => {
+    expect(parser.parse("8.0/2.0/2.0")).toBeCloseTo(2.0); // (8.0 / 2.0) / 2.0 = 2.0
+  });
+
+  test("Precedencia de potencia sobre multiplicación", () => {
+    expect(parser.parse("2.0*3.0**2.0")).toBeCloseTo(18.0); // 2.0 * (3.0 ** 2.0) = 18.0
+  });
+
+  test("Asociatividad derecha en potencia", () => {
+    expect(parser.parse("2.0**3.0**2.0")).toBeCloseTo(512.0); // 2.0 ** (3.0 ** 2.0) = 512.0
+  });
+});
+```
